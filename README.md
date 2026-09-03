@@ -29,5 +29,5 @@ Sigue estos pasos en tu terminal (PowerShell o CMD) para clonar y ejecutar el pr
 
 ### 1. Clonar el repositorio
 ```powershell
-git clone <https://github.com/YefryCodes/Proyecto_BackEnd.git>
+git clone https://github.com/YefryCodes/Proyecto_BackEnd.git
 cd proyectobackend
