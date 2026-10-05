@@ -1,16 +1,22 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Construir rutas dentro del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Clave secreta para desarrollo
-SECRET_KEY = 'django-insecure-tu-clave-secreta-aqui'
+# Cargar variables de entorno desde el archivo .env
+load_dotenv(BASE_DIR / '.env')
 
-# Para probar el error 404 personalizado, DEBUG debe ser False
-DEBUG = False
+# Clave secreta desacoplada
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-tu-clave-secreta-aqui')
 
-# Hosts permitidos cuando DEBUG = False
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+# Modo DEBUG desacoplado
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
+
+# Hosts permitidos desacoplados
+allowed_hosts_raw = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_raw.split(',') if h.strip()]
 
 # Aplicaciones instaladas
 INSTALLED_APPS = [
@@ -20,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'gestion_reservas',
 ]
 
@@ -53,11 +60,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'proyectobackend.wsgi.application'
 
-# Base de datos SQLite
+# Conexión a Base de Datos desacoplada mediante variables de entorno
+db_engine = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
+db_name = os.getenv('DB_NAME', 'db.sqlite3')
+if 'sqlite' in db_engine and not os.path.isabs(str(db_name)):
+    db_name = BASE_DIR / db_name
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': db_engine,
+        'NAME': db_name,
+        'USER': os.getenv('DB_USER', ''),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', ''),
     }
 }
 
