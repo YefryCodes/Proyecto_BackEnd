@@ -1,10 +1,8 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-
 # Construir rutas dentro del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 # Cargar variables de entorno desde el archivo .env
 load_dotenv(BASE_DIR / '.env')
 

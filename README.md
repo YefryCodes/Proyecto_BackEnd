@@ -120,4 +120,5 @@ Interfaz navegable interactiva (DRF Browsable API): **`http://127.0.0.1:8000/api
 ## 5. Accesos Adicionales
 
 - **Panel de Administración Django:** `http://127.0.0.1:8000/admin/`
+con el usuario y contra de createsuperuser creado anteriormente
 - **Página de Inicio Web:** `http://127.0.0.1:8000/`
