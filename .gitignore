@@ -1,1 +1,23 @@
-vitual_
+# Archivos de entorno y credenciales sensibles
+.env
+.env.*
+!.env.example
+
+# Base de datos SQLite local
+*.sqlite3
+*.sqlite3-journal
+
+# Python y archivos compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+.venv/
+venv/
+vitual_/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
