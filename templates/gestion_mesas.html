@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Catálogo de Mesas | Cadena Gastronómica</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="{% url 'dashboard' %}" class="text-xs text-slate-400 hover:text-white transition-colors">&larr; Volver al Dashboard</a>
+        <span class="text-xs px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono">
+          CBV: LoginRequiredMixin
+        </span>
+      </div>
+      <form method="post" action="{% url 'logout' %}" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg transition-colors">
+          Cerrar Sesión
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">Disponibilidad Física de Mesas</h1>
+      <p class="text-xs text-slate-400 mt-1">Distribución de mesas por sucursal, zonas y límites de capacidad de comensales.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for mesa in mesas %}
+      <div class="bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-6 transition-all flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between text-xs mb-3">
+            <span class="font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Mesa #{{ mesa.numero_mesa }}</span>
+            <span class="text-slate-400">{{ mesa.sucursal.nombre }}</span>
+          </div>
+          <h3 class="text-base font-bold text-white">{{ mesa.get_ubicacion_display }}</h3>
+          <p class="text-xs text-slate-400 mt-1">Capacidad máxima: <strong class="text-slate-200">{{ mesa.capacidad }} comensales</strong></p>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
+          <span class="text-xs {% if mesa.activa %}text-emerald-400{% else %}text-rose-400{% endif %}">
+            {% if mesa.activa %}● Habilitada para reservas{% else %}○ Fuera de servicio{% endif %}
+          </span>
+          <span class="text-xs font-mono text-slate-500">ID: {{ mesa.id }}</span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-3 text-center py-16 text-slate-500 bg-slate-900/40 rounded-2xl border border-slate-800">
+        No hay mesas registradas en el sistema.
+      </div>
+      {% endfor %}
+    </div>
+  </main>
+</body>
+</html>
