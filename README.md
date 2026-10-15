@@ -1,42 +1,42 @@
-# API REST de Gestión de Reservas - Cadena Gastronómica
+# Gestor de Reservas de Restaurantes y Disponibilidad de Mesas - Cadena Gastronómica
 
-Plataforma Backend desarrollada en **Python**, **Django** y **Django REST Framework (DRF)** orientada a la administración centralizada de disponibilidad de mesas, capacidad y gestión integral de reservas para restaurantes.
+Plataforma Web y API RESTful desarrollada con **Python**, **Django**, **Django REST Framework (DRF)** y **MySQL**, orientada a la administración centralizada de disponibilidad de mesas, capacidad y gestión integral de reservas para una cadena gastronómica.
 
-Este proyecto corresponde a la **Evaluación N.° 2 - Backend**, incorporando una arquitectura RESTful profesional, persistencia relacional con protección de integridad referencial, desacoplamiento seguro de credenciales mediante variables de entorno y soporte CRUD exhaustivo.
+Este repositorio corresponde a la **Evaluación N.° 3 - Backend**, incorporando una arquitectura completamente desacoplada mediante `python-decouple`, capa canónica de autenticación, vistas protegidas por control de acceso (FBV y CBV), auditoría transaccional de estados y validaciones estrictas de reglas de negocio.
 
 ---
 
 ## 1. Requerimientos Técnicos
 
 - **Lenguaje:** Python 3.10+
-- **Framework Web:** Django 5.x / 6.x
-- **API Framework:** Django REST Framework (DRF) 3.15+
-- **Gestión de Entorno:** python-dotenv
-- **Base de Datos:** MySQL / MariaDB (puerto 3306) o SQLite para desarrollo
+- **Framework Web:** Django 6.x
+- **API REST Framework:** Django REST Framework (DRF) 3.18+
+- **Desacoplamiento de Variables:** python-decouple 3.8+
+- **Conector y Base de Datos:** MySQL / MariaDB (XAMPP o servidor local puerto 3306) con `mysqlclient`
 - **Control de Versiones:** Git & GitHub
 
 ---
 
-## 2. Configuración de Base de Datos y Variables de Entorno
+## 2. Aprovisionamiento de Base de Datos (Scripts SQL)
 
-### 2.1 Script de Inicialización de Base de Datos (MySQL)
-En `scripts/01_init_db.sql` se encuentran las sentencias DDL y DCL para crear la base de datos, usuario y otorgar privilegios en MySQL:
+En la carpeta `scripts/` se encuentran las 3 sentencias DDL y DCL independientes para el aprovisionamiento de la base de datos MySQL:
+
+1. `scripts/01_create_db.sql`: Creación de la base de datos `restaurante_reservas_db`.
+2. `scripts/02_create_user.sql`: Creación del usuario de aplicación `restaurante_admin`.
+3. `scripts/03_grant_privileges.sql`: Otorgamiento de privilegios exclusivos para `restaurante_admin`.
 
 ```sql
-CREATE DATABASE IF NOT EXISTS reservas_db 
-    CHARACTER SET utf8mb4 
-    COLLATE utf8mb4_unicode_ci;
-
-CREATE USER IF NOT EXISTS 'reservas_user'@'localhost' 
-    IDENTIFIED BY 'Reservas123';
-
-GRANT ALL PRIVILEGES ON reservas_db.* TO 'reservas_user'@'localhost';
-
+CREATE DATABASE IF NOT EXISTS restaurante_reservas_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'restaurante_admin'@'localhost' IDENTIFIED BY 'GastroSecure2026!';
+GRANT ALL PRIVILEGES ON restaurante_reservas_db.* TO 'restaurante_admin'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-### 2.2 Variables de Entorno (.env)
-El proyecto utiliza un archivo `.env` para desacoplar credenciales sensibles. Crea tu archivo local copiando la plantilla `.env.example`:
+---
+
+## 3. Variables de Entorno (`.env`)
+
+El archivo `.env` se gestiona mediante `python-decouple`. Crea tu archivo local copiando la plantilla `.env.example`:
 
 ```powershell
 cp .env.example .env
@@ -44,26 +44,23 @@ cp .env.example .env
 
 Contenido de `.env`:
 ```env
-SECRET_KEY=django-insecure-reservas-cadena-gastronomica-key-2026
+SECRET_KEY=django-insecure-gastro-reservas-audit-2026-prod-key
 DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost
+ALLOWED_HOSTS=127.0.0.1,localhost,testserver
 
-# Configuración Base de Datos (MySQL / SQLite)
-DB_ENGINE=django.db.backends.sqlite3
-DB_NAME=db.sqlite3
-DB_USER=
-DB_PASSWORD=
-DB_HOST=
-DB_PORT=
+DB_ENGINE=django.db.backends.mysql
+DB_NAME=restaurante_reservas_db
+DB_USER=restaurante_admin
+DB_PASSWORD=GastroSecure2026!
+DB_HOST=localhost
+DB_PORT=3306
 ```
 
 ---
 
-## 3. Instalación y Puesta en Marcha
+## 4. Instalación y Puesta en Marcha
 
-Sigue estos pasos en tu terminal (PowerShell) para levantar el proyecto:
-
-### 3.1 Entorno Virtual e Instalación de Dependencias
+### 4.1 Entorno Virtual e Instalación de Dependencias
 ```powershell
 # 1. Crear entorno virtual
 python -m venv .venv
@@ -75,50 +72,45 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 3.2 Migraciones y Superusuario
+### 4.2 Migraciones y Superusuario
 ```powershell
-python manage.py makemigrations
+# Crear y aplicar migraciones en MySQL
+python manage.py makemigrations api
 python manage.py migrate
+
+# Crear superusuario para acceso al panel y vistas protegidas
 python manage.py createsuperuser
 ```
 
-### 3.3 Ejecución del Servidor
+### 4.3 Ejecución del Servidor
 ```powershell
 python manage.py runserver
 ```
 
 ---
 
-## 4. Catálogo de Endpoints de la API REST
+## 5. Arquitectura de Navegación y Rutas del Sistema
 
-Interfaz navegable interactiva (DRF Browsable API): **`http://127.0.0.1:8000/api/`**
+### 5.1 Vistas Web y Control de Acceso
+- **Landing Page Pública (`/`):** Portal de bienvenida para anfitriones y comensales.
+- **Acceso / Formulario de Login (`/login/`):** Formulario canónico `auth_views.LoginView` con Tailwind CSS y protección CSRF.
+- **Cierre de Sesión (`/logout/`):** Endpoint POST `auth_views.LogoutView` con redirección a la landing page.
+- **Dashboard Analítico FBV (`/dashboard/`):** Vista protegida mediante `@login_required` que calcula KPIs en tiempo real (mesas habilitadas, reservas del día, tasa de ocupación estimada y cancelaciones) junto a la tabla de auditoría transaccional.
+- **Catálogo de Mesas CBV (`/mesas/`):** Vista protegida mediante `LoginRequiredMixin` (`ListView`) con la disponibilidad física y zonas de mesas.
+- **Panel de Administración (`/admin/`):** Gestión avanzada de modelos con inlines de auditoría.
 
-### 4.1 Restaurantes (`/api/restaurantes/`)
-- `GET /api/restaurantes/` : Listar todos los restaurantes registrados.
-- `POST /api/restaurantes/` : Crear un nuevo restaurante.
-- `GET /api/restaurantes/{id}/` : Obtener detalle de un restaurante específico.
-- `PUT /api/restaurantes/{id}/` : Actualización total de datos del restaurante.
-- `PATCH /api/restaurantes/{id}/` : Actualización parcial de datos.
-- `DELETE /api/restaurantes/{id}/` : Eliminar restaurante.
-
-### 4.2 Mesas (`/api/mesas/`)
-- `GET /api/mesas/` : Listar todas las mesas con detalle de capacidad y restaurante.
-- `POST /api/mesas/` : Registrar nueva mesa (con validación de capacidad > 0).
-- `GET /api/mesas/{id}/` : Consultar detalle de mesa.
-- `PUT / PATCH /api/mesas/{id}/` : Modificar datos de mesa.
-- `DELETE /api/mesas/{id}/` : Eliminar mesa (con protección referencial ante reservas asociadas).
-
-### 4.3 Reservas (`/api/reservas/`)
-- `GET /api/reservas/` : Listar todas las reservas realizadas.
-- `POST /api/reservas/` : Crear nueva reserva (con validación de duración y cantidad de personas).
-- `GET /api/reservas/{id}/` : Consultar detalle de reserva por ID.
-- `PUT / PATCH /api/reservas/{id}/` : Modificar o actualizar estado de la reserva.
-- `DELETE /api/reservas/{id}/` : Cancelar o eliminar reserva del sistema.
+### 5.2 Capa de API RESTful DRF (`/api/`)
+Navegable de forma interactiva en **`http://127.0.0.1:8000/api/`**:
+- `/api/sucursales/` : CRUD para gestión de locales y sucursales gastronómicas.
+- `/api/mesas/` : CRUD para mesas, asignación de zonas (Salón, Terraza, VIP) y capacidad.
+- `/api/reservas/` : CRUD de reservas con validación de capacidad, prevención de doble reserva y bloqueo de fechas pasadas.
+- `/api/auditorias/` : Endpoint de solo lectura (`ReadOnlyModelViewSet`) protegido (`IsAuthenticated`) para trazabilidad de estados.
 
 ---
 
-## 5. Accesos Adicionales
+## 6. Reglas de Negocio Implementadas
 
-- **Panel de Administración Django:** `http://127.0.0.1:8000/admin/`
-con el usuario y contra de createsuperuser creado anteriormente
-- **Página de Inicio Web:** `http://127.0.0.1:8000/`
+1. **Control de Capacidad:** No se permite reservar una mesa si la cantidad de comensales excede su capacidad física.
+2. **Prevención de Solapamiento:** Rechaza reservas simultáneas para la misma mesa, misma fecha y mismo turno (Almuerzo 1, Almuerzo 2, Cena 1, Cena 2), excluyendo reservas canceladas o no presentadas.
+3. **Bloqueo Temporal:** No permite registrar reservas en fechas anteriores al día actual.
+4. **Auditoría Transaccional:** Cada cambio de estado de reserva genera automáticamente un registro en `HistorialReserva` vinculando al operador responsable y motivo del cambio.
